@@ -1,4 +1,4 @@
-module github.com/zzyalbert/badger
+module github.com/zzyalbert/mybadger
 
 go 1.12
 
