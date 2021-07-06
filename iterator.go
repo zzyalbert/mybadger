@@ -590,7 +590,8 @@ func (it *Iterator) Next() {
 
 	// Set next item to current
 	it.item = it.data.pop()
-	for it.iitr.Valid() && it.keyHasPrefix() {
+	// excapse when current key doesn't have prefix
+	for it.iitr.Valid() && hasPrefix(it.iitr, it.opt.Prefix) {
 		if it.parseItem() {
 			// parseItem calls one extra next.
 			// This is used to deal with the complexity of reverse iteration.
@@ -726,10 +727,6 @@ func (it *Iterator) fill(item *Item) {
 	}
 }
 
-func (it *Iterator) keyHasPrefix() bool {
-	return bytes.HasPrefix(it.iitr.Key(), it.opt.Prefix)
-}
-
 func (it *Iterator) prefetch() {
 	prefetchSize := 2
 	if it.opt.PrefetchValues && it.opt.PrefetchSize > 1 {
@@ -739,7 +736,8 @@ func (it *Iterator) prefetch() {
 	i := it.iitr
 	var count int
 	it.item = nil
-	for i.Valid() && it.keyHasPrefix() {
+	// excapse when current key doesn't have prefix
+	for i.Valid() && hasPrefix(i, it.opt.Prefix) {
 		if !it.parseItem() {
 			continue
 		}
@@ -748,6 +746,14 @@ func (it *Iterator) prefetch() {
 			break
 		}
 	}
+}
+
+// hasPrefix would check if current key in the internal iterator has the prefix
+func hasPrefix(it y.Iterator, prefix []byte) bool {
+	if len(prefix) > 0 {
+		return bytes.HasPrefix(y.ParseKey(it.Key()), prefix)
+	}
+	return true
 }
 
 // Seek would seek to the provided key if present. If absent, it would seek to the next
